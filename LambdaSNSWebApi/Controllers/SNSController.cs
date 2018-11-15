@@ -22,16 +22,12 @@ namespace LambdaSNSWebApi.Controllers
         private ListTopicsRequest _SnsRequest { get; set; }
         private ListTopicsResponse _SnsResponse { get; set; }
         private ConfirmSubscriptionResponse _confirmSubscriptionResponse { get; set; }
-        private BasicAWSCredentials AwsCredentials { get; set; }
-
-        private const string AccessKey = "AKIAJ3DUDKS2PF7ICLXA";
-        private const string SecretKey = "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";
-
+        private EnvironmentVariablesAWSCredentials _AwsCredentials { get; set; }
 
         //@ TODO : Need to find a way for DI for AmazonSimpleNotificationServiceClient
         public SNSController()
         {
-            AwsCredentials = new Amazon.Runtime.BasicAWSCredentials(AccessKey, SecretKey);
+            _AwsCredentials = new EnvironmentVariablesAWSCredentials();
         }
 
         /// <summary>
@@ -69,7 +65,7 @@ namespace LambdaSNSWebApi.Controllers
                 if (sm.IsSubscriptionType)
                 {
                     // CONFIRM THE SUBSCRIPTION
-                    using (_SnsClient = new AmazonSimpleNotificationServiceClient(AwsCredentials, RegionEndpoint.USEast2))
+                    using (_SnsClient = new AmazonSimpleNotificationServiceClient(_AwsCredentials, RegionEndpoint.USEast2))
                     {
                         try
                         {
@@ -91,6 +87,9 @@ namespace LambdaSNSWebApi.Controllers
                 {
                     // PROCESS NOTIFICATIONS
                     status = "SNS Subject: " + sm.Subject + " | SNS Message: " + sm.MessageText;
+                    
+                    //Process of notification / log notification to CloudWatch Logs
+
                     LambdaLogger.Log(status);
                 }
             }
@@ -115,7 +114,7 @@ namespace LambdaSNSWebApi.Controllers
         {
             var topicList = new List<Dictionary<string, string>>();
             Dictionary<string, string> dictAttributes = null;
-            using (_SnsClient = new AmazonSimpleNotificationServiceClient(AwsCredentials, RegionEndpoint.USEast2))
+            using (_SnsClient = new AmazonSimpleNotificationServiceClient(_AwsCredentials, RegionEndpoint.USEast2))
             {
                 try
                 {
