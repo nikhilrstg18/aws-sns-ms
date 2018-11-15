@@ -1,0 +1,6 @@
+.vs/
+*.json
+*.targets
+*.props
+*.cs
+*.txt
